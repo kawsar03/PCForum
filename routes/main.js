@@ -67,10 +67,23 @@ res.render("bargainbooks.ejs", newData)
 	const bcrypt = require('bcrypt');
 	const saltRounds = 10;
 	const plainPassword = req.body.password;
+    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
+        // Store hashed password in your database.
     });
-	bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
-	// Store hashed password in your database.
-	})                                                                                                                                               
+
+        let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
+           // execute sql query
+           let newrecord = [req.body.username, req.body.first_name, req.body.last_name, req.body.email, req.body.hashedPassword];
+           db.query(sqlquery, newrecord, (err, result) => {
+            if (err) {
+              return console.error(err.message);
+            }
+            else
+            result = 'Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email;
+            result += 'Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword;
+            res.send(result);
+        });
+    })                                                                                                                                               
                                                                                                                                                       
     app.post('/bookadded', function (req,res) {
           // saving data in database
@@ -86,4 +99,4 @@ res.render("bargainbooks.ejs", newData)
 + ' price '+ req.body.price);
             });                                                                                                                                       
        });                                                                                                                                            
-}       
+}
