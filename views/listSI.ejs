@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1><%=shopName%> </h1>
+    <h2>Here are the current Software Issue posts:</h2>
+    <ul>
+      <% PostedSI.forEach(function(software) { %>
+        <li><%= software.title %>, <%=software.issue%> </li>
+      <% }) %>
+    </ul>
+    </body>
+</html>

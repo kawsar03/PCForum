@@ -17,21 +17,21 @@ module.exports = function(app, shopData) {
         app.get('/register', function (req,res) {
         res.render('register.ejs', shopData);
     });                                                                                                                                               
-    app.get('/addbook', function (req,res) {
-        res.render('addbook.ejs', shopData);
+    app.get('/addsoftwareissue', function (req,res) {
+        res.render('addsoftwareissue.ejs', shopData);
     });                                                                                                                                               
-    app.get('/list', function(req, res) {
-        // Query database to get all the books
-        let sqlquery = "SELECT * FROM books";
+    app.get('/listSI', function(req, res) {
+        // Query database to get all the software issues
+        let sqlquery = "SELECT * FROM software";
                                                                                                                                                       
         // Execute sql query
         db.query(sqlquery, (err, result) => {                                                                                                         
             if (err) {
                 res.redirect('./');
             }
-            let newData = Object.assign({}, shopData, {availableBooks:result});
+            let newData = Object.assign({}, shopData, {PostedSI:result});
             console.log(newData)                                                                                                                      
-            res.render("list.ejs", newData)
+            res.render("listSI.ejs", newData)
          });                                                                                                                                          
     });
 
@@ -85,18 +85,18 @@ res.render("bargainbooks.ejs", newData)
         });
     })                                                                                                                                               
                                                                                                                                                       
-    app.post('/bookadded', function (req,res) {
+    app.post('/softwareIssueadded', function (req,res) {
           // saving data in database
-          let sqlquery = "INSERT INTO books (name, price) VALUES (?,?)";
+          let sqlquery = "INSERT INTO software (title, issue) VALUES (?,?)";
           // execute sql query
-          let newrecord = [req.body.name, req.body.price];
+          let newrecord = [req.body.title, req.body.issue];
           db.query(sqlquery, newrecord, (err, result) => {                                                                                            
             if (err) {
               return console.error(err.message);
             }
             else
-            res.send(' This book is added to the database, name: '+ req.body.name
-+ ' price '+ req.body.price);
+            res.send(' This issue is added to the database, title: '+ req.body.title
++ ' Issue '+ req.body.issue);
             });                                                                                                                                       
        });                                                                                                                                            
 }

@@ -14,7 +14,7 @@ const db = mysql.createConnection ({
 host: 'localhost',
 user: 'appuser',
 password: 'app2027',
-database: 'myBookshop'
+database: 'myPCForum'
 });
 // Connect to the database
 db.connect((err) => {
@@ -39,7 +39,7 @@ app.set('view engine', 'ejs');
 app.engine('html', ejs.renderFile);
 
 // Define our data
-var shopData = {shopName: "Bertie's Books Wholesales Shop"}
+var shopData = {shopName: "PC Help Forum"}
 
 // Requires the main.js file inside the routes folder passing in the Express app and data as arguments.  All the routes will go in this file
 require("./routes/main")(app, shopData);
