@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1><%=shopName%> </h1>
+    <h2>Here are the list for all users:</h2>
+    <ul>
+      <% Postedlist.forEach(function(userdetails) { %>
+        <li><%= userdetails.username %>, <%=userdetails.first_name%>, <%=userdetails.last_name%>, <%=userdetails.email%> </li>
+      <% }) %>
+    </ul>
+    </body>
+</html>

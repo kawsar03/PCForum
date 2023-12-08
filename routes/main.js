@@ -22,6 +22,20 @@ module.exports = function(app, shopData) {
     });
     app.get('/addhardwareissue', function (req,res) {
         res.render('addhardwareissue.ejs', shopData);
+    });
+    app.get('/listusers', function(req, res) {
+        // Query database to get all the users
+        let sqlquery = "SELECT * FROM userdetails";
+                                                                                                                                                      
+        // Execute sql query
+        db.query(sqlquery, (err, result) => {                                                                                                         
+            if (err) {
+                res.redirect('./');
+            }
+            let newData = Object.assign({}, shopData, {Postedlist:result});
+            console.log(newData)                                                                                                                      
+            res.render("listusers.ejs", newData)
+         });                                                                                                                                          
     });                                                                                                                                                
     app.get('/listSI', function(req, res) {
         // Query database to get all the software issues
