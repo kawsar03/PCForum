@@ -61,29 +61,41 @@ res.render("bargainbooks.ejs", newData)
 });
 
 
-    app.post('/registered', function (req,res) {
-        // Saving data in database
-        res.send(' Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email);
-	const bcrypt = require('bcrypt');
-	const saltRounds = 10;
-	const plainPassword = req.body.password;
-    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
-        // Store hashed password in your database.
-    });
+app.post('/registered', function (req, res) {
+    // Checks if the username already exists
+    let existingUserQuery = "SELECT * FROM userdetails WHERE username = ?";
+    db.query(existingUserQuery, [req.body.username], (err, result) => {
+        if (err) {
+            return res.status(500).send('Internal Server Error');
+        }
 
-        let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
-           // execute sql query
-           let newrecord = [req.body.username, req.body.first_name, req.body.last_name, req.body.email, req.body.hashedPassword];
-           db.query(sqlquery, newrecord, (err, result) => {
-            if (err) {
-              return console.error(err.message);
-            }
-            else
-            result = 'Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email;
-            result += 'Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword;
-            res.send(result);
+        if (result.length > 0) {
+            return res.send('This username is already in use. Please choose something different');
+        }
+
+        // If the username is unique, continue with the insertion
+        const bcrypt = require('bcrypt');
+        const saltRounds = 10;
+        const plainPassword = req.body.password;
+
+        bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
+            // Store hashed password in your database.
+            let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
+            // execute sql query
+            let newrecord = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword];
+
+            db.query(sqlquery, newrecord, (err, result) => {
+                if (err) {
+                    return console.error(err.message);
+                } else {
+                    result = 'Hello ' + req.body.first + ' ' + req.body.last + ' you are now registered!  We will send an email to you at ' + req.body.email;
+                    //result += 'Your password is: ' + req.body.password + ' and your hashed password is: ' + hashedPassword;
+                    res.send(result);
+                }
+            });
         });
-    })                                                                                                                                               
+    });
+});                                                                                                                                              
                                                                                                                                                       
     app.post('/softwareIssueadded', function (req,res) {
           // saving data in database
