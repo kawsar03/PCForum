@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet"  type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1><%=shopName%> </h1>
+    <h2>Here are the current Hardware Issue posts:</h2>
+    <ul>
+      <% PostedHI.forEach(function(hardware) { %>
+        <li><%= hardware.title %>, <%= hardware.issue%> </li>
+      <% }) %>
+    </ul>
+    </body>
+</html>

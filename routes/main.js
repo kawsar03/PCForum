@@ -19,7 +19,10 @@ module.exports = function(app, shopData) {
     });                                                                                                                                               
     app.get('/addsoftwareissue', function (req,res) {
         res.render('addsoftwareissue.ejs', shopData);
-    });                                                                                                                                               
+    });
+    app.get('/addhardwareissue', function (req,res) {
+        res.render('addhardwareissue.ejs', shopData);
+    });                                                                                                                                                
     app.get('/listSI', function(req, res) {
         // Query database to get all the software issues
         let sqlquery = "SELECT * FROM software";
@@ -32,6 +35,20 @@ module.exports = function(app, shopData) {
             let newData = Object.assign({}, shopData, {PostedSI:result});
             console.log(newData)                                                                                                                      
             res.render("listSI.ejs", newData)
+         });                                                                                                                                          
+    });
+    app.get('/listHI', function(req, res) {
+        // Query database to get all the Hardware issues
+        let sqlquery = "SELECT * FROM hardware";
+                                                                                                                                                      
+        // Execute sql query
+        db.query(sqlquery, (err, result) => {                                                                                                         
+            if (err) {
+                res.redirect('./');
+            }
+            let newData = Object.assign({}, shopData, {PostedHI:result});
+            console.log(newData)                                                                                                                      
+            res.render("listHI.ejs", newData)
          });                                                                                                                                          
     });
 
@@ -60,9 +77,8 @@ res.render("bargainbooks.ejs", newData)
 });
 });
 
-
 app.post('/registered', function (req, res) {
-    // Checks if the username already exists
+    // Check if username already exists
     let existingUserQuery = "SELECT * FROM userdetails WHERE username = ?";
     db.query(existingUserQuery, [req.body.username], (err, result) => {
         if (err) {
@@ -72,14 +88,12 @@ app.post('/registered', function (req, res) {
         if (result.length > 0) {
             return res.send('This username is already in use. Please choose something different');
         }
-
-        // If the username is unique, continue with the insertion
         const bcrypt = require('bcrypt');
         const saltRounds = 10;
         const plainPassword = req.body.password;
 
         bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
-            // Store hashed password in your database.
+            // Store hashed password in database.
             let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
             // execute sql query
             let newrecord = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword];
@@ -110,5 +124,20 @@ app.post('/registered', function (req, res) {
             res.send(' This issue is added to the database, title: '+ req.body.title
 + ' Issue '+ req.body.issue);
             });                                                                                                                                       
-       });                                                                                                                                            
+       });
+       
+       app.post('/hardwareIssueadded', function (req,res) {
+        // saving data in database
+        let sqlquery = "INSERT INTO hardware (title, issue) VALUES (?,?)";
+        // execute sql query
+        let newrecord = [req.body.title, req.body.issue];
+        db.query(sqlquery, newrecord, (err, result) => {                                                                                            
+          if (err) {
+            return console.error(err.message);
+          }
+          else
+          res.send(' This issue is added to the database, title: '+ req.body.title
++ ' Issue '+ req.body.issue);
+          });                                                                                                                                       
+     });
 }
