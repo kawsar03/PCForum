@@ -66,6 +66,11 @@ module.exports = function(app, shopData) {
          });                                                                                                                                          
     });
 
+app.get('/login', function (req,res) {
+res.render('login.ejs', shopData);
+}); 
+
+
 app.get("/search-result", function (req, res) {
 //search database
 let sqlquery =
@@ -125,33 +130,39 @@ app.post('/registered', function (req, res) {
     });
 });                                                                                                                                              
                                                                                                                                                       
-    app.post('/softwareIssueadded', function (req,res) {
-          // saving data in database
-          let sqlquery = "INSERT INTO software (title, issue) VALUES (?,?)";
-          // execute sql query
-          let newrecord = [req.body.title, req.body.issue];
-          db.query(sqlquery, newrecord, (err, result) => {                                                                                            
-            if (err) {
-              return console.error(err.message);
-            }
-            else
-            res.send(' This issue is added to the database, title: '+ req.body.title
-+ ' Issue '+ req.body.issue);
-            });                                                                                                                                       
-       });
-       
-       app.post('/hardwareIssueadded', function (req,res) {
-        // saving data in database
-        let sqlquery = "INSERT INTO hardware (title, issue) VALUES (?,?)";
-        // execute sql query
-        let newrecord = [req.body.title, req.body.issue];
-        db.query(sqlquery, newrecord, (err, result) => {                                                                                            
+app.post('/loggedin', function(req, res) {
+    // Compare the form data with the data stored in the database
+    let sqlquery = "SELECT hashedPassword FROM userdetails WHERE username = ?"; // query database to get the hashed password for the user
+    // execute sql query
+    let username = (req.body.username);
+    db.query(sqlquery, username, (err, result) => {
+      if (err) {
+        return console.error(err.message);
+      }
+      else if (result.length == 0) {
+        // No user found with that username
+        res.send('Invalid username or password');
+      }
+      else {
+        // User found, compare the passwords
+        let hashedPassword = result[0].hashedPassword;
+        const bcrypt = require('bcrypt');
+        bcrypt.compare((req.body.password), hashedPassword, function(err, result) {
           if (err) {
+            // Handle error
             return console.error(err.message);
           }
-          else
-          res.send(' This issue is added to the database, title: '+ req.body.title
-+ ' Issue '+ req.body.issue);
-          });                                                                                                                                       
-     });
+          else if (result == true) {
+            // The passwords match, login successful
+            res.send('Welcome, ' + (req.body.username) + '!' + '<a href='+'./'+'>Home</a>');
+          }
+          else {
+            //  login failed
+            res.send('Invalid username or password');
+          }
+        });
+      }
+    });
+  });
+    
 }
