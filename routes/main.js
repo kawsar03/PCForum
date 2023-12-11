@@ -96,7 +96,7 @@ app.get('/logout', redirectLogin, (req,res) => {
 app.get("/search-result", function (req, res) {
 //search database
 let sqlquery =
-"SELECT * from books WHERE name like '%" + req.query.keyword + "%'";
+"SELECT * from software WHERE name like '%" + req.query.keyword + "%'";
 db.query(sqlquery, (err, result) => {
 if (err) {
 res.send("Error");
@@ -116,6 +116,32 @@ let newData = Object.assign({}, shopData, {availableBooks:result});
 console.log(newData)
 res.render("bargainbooks.ejs", newData)
 });
+});
+
+app.get('/removeuser', redirectLogin, function (req,res) {
+    res.render('removeuser.ejs', shopData);
+});
+app.post('/userremoved', redirectLogin, function (req, res) {
+    const usernameToRemove = req.sanitize(req.body.username);
+
+    // delete from database
+    const deleteQuery = "DELETE FROM userdetails WHERE username = ?";
+    db.query(deleteQuery, [usernameToRemove], (err, result) => {
+        if (err) {
+            console.log('Error removinguser:', err);
+            res.status(500).send('Internal Server Error');
+        } else {
+            console.log('Result:', result);
+
+            if (result.affectedRows > 0) {
+                console.log('User removed successfully');
+                res.send('The user has successfully been removed. <a href='+'./'+'>Home</a>');
+            } else {
+                console.log('User not found');
+                res.send('We were not able to locate this user. Please try again later <a href='+'./'+'>Home</a>');
+            }
+        }
+    });
 });
 
 app.post('/softwareIssueadded', function (req, res) {
