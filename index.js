@@ -2,12 +2,18 @@
 var express = require ('express')
 var ejs = require('ejs')
 var bodyParser= require ('body-parser')
+var validator = require ('express-validator');
+var session = require ('express-session');
 
 // Create the express application object
 const app = express()
 
 const port = 8000
 const mysql = require('mysql');
+const expressSanitizer = require('express-sanitizer');
+// Create an input sanitizer
+app.use(expressSanitizer());
+
 app.use(bodyParser.urlencoded({ extended: true }))
 // Define the database connection
 const db = mysql.createConnection ({
@@ -23,8 +29,6 @@ throw err;}
 console.log('Connected to database');
 });
 global.db = db;
-
-var session = require ('express-session');
 
 // Create a session
 app.use(session({

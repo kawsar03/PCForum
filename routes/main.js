@@ -6,6 +6,8 @@ module.exports = function(app, shopData) {
         } else { next (); }
     }
 
+    const { check, validationResult } = require('express-validator');
+
                                                                                                                                                       
     // Handle our routes
     app.get('/',function(req,res){
@@ -17,9 +19,14 @@ module.exports = function(app, shopData) {
     app.get('/search', redirectLogin, function(req,res){
         res.render("search.ejs", shopData);
     });                                                                                                                                               
-    app.get('/search-result', redirectLogin, function (req, res) {
+    app.get('/search-result', redirectLogin, check('search').isLength({ min: 1 }), function (req, res) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.redirect('./search'); }
+        else { 
         // Searching in the database
         res.send("You searched for: " + req.query.keyword);
+        }
     });
         app.get('/register', function (req,res) {
         res.render('register.ejs', shopData);
@@ -115,13 +122,13 @@ app.post('/softwareIssueadded', function (req, res) {
     // saving data in database
     let sqlquery = "INSERT INTO software (title,issue) VALUES (?,?)";
     // execute sql query
-    let newrecord = [req.body.title, req.body.issue];
+    let newrecord = [req.sanitize(req.body.title), req.sanitize(req.body.issue)];
     db.query(sqlquery, newrecord, (err, result) => {
         if (err) {
             return console.error(err.message);
         }
         else
-            res.send(' This post was added to the forum, Title:   ' + req.body.title+ '  Issue:   ' + req.body.issue);
+            res.send(' This post was added to the forum, Title:   ' + req.sanitize(req.body.title)+ '  Issue:   ' + req.sanitize(req.body.issue));
     });
 });
 
@@ -129,7 +136,7 @@ app.post('/hardwareIssueadded', function (req, res) {
     // saving data in database
     let sqlquery = "INSERT INTO hardware (title,issue) VALUES (?,?)";
     // execute sql query
-    let newrecord = [req.body.title, req.body.issue];
+    let newrecord = [req.sanitize(req.body.title), req.sanitize(req.body.issue)];
     db.query(sqlquery, newrecord, (err, result) => {
         if (err) {
             return console.error(err.message);
@@ -139,7 +146,11 @@ app.post('/hardwareIssueadded', function (req, res) {
     });
 });
 
-app.post('/registered', function (req, res) {
+app.post('/registered', [check('email').isEmail()], [check('password').isLength({ min: 8 }).withMessage('Please lengthen this text to 8 characters or more. (You are currently using  characters)')], function (req, res) {
+    const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.redirect('./register'); }
+        else { 
     // Check if username already exists
     let existingUserQuery = "SELECT * FROM userdetails WHERE username = ?";
     db.query(existingUserQuery, [req.body.username], (err, result) => {
@@ -158,26 +169,27 @@ app.post('/registered', function (req, res) {
             // Store hashed password in database.
             let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
             // execute sql query
-            let newrecord = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword];
+            let newrecord = [req.sanitize(req.body.username), req.sanitize(req.body.first), req.sanitize(req.body.last), req.sanitize(req.body.email), hashedPassword];
 
             db.query(sqlquery, newrecord, (err, result) => {
                 if (err) {
                     return console.error(err.message);
                 } else {
-                    result = 'Hello ' + req.body.first + ' ' + req.body.last + ' you are now registered!  We will send an email to you at ' + req.body.email;
+                    result = 'Hello ' + req.sanitize(req.body.first) + ' ' + req.sanitize(req.body.last) + ' you are now registered!  We will send an email to you at ' + req.sanitize(req.body.email);
                     //result += 'Your password is: ' + req.body.password + ' and your hashed password is: ' + hashedPassword;
                     res.send(result);
                 }
             });
         });
     });
+}
 });                                                                                                                                              
                                                                                                                                                       
 app.post('/loggedin', function(req, res) {
     // Compare the form data with the data stored in the database
     let sqlquery = "SELECT hashedPassword FROM userdetails WHERE username = ?"; // query database to get the hashed password for the user
     // execute sql query
-    let username = (req.body.username);
+    let username = (req.sanitize(req.body.username));
     db.query(sqlquery, username, (err, result) => {
       if (err) {
         return console.error(err.message);
@@ -190,16 +202,16 @@ app.post('/loggedin', function(req, res) {
         // User found, compare the passwords
         let hashedPassword = result[0].hashedPassword;
         const bcrypt = require('bcrypt');
-        bcrypt.compare((req.body.password), hashedPassword, function(err, result) {
+        bcrypt.compare((req.sanitize(req.body.password)), hashedPassword, function(err, result) {
           if (err) {
             // Handle error
             return console.error(err.message);
           }
           else if (result == true) {
             // Save user session here, when login is successful
-            req.session.userId = req.body.username;
+            req.session.userId = req.sanitize(req.body.username)
             // The passwords match, login successful
-            res.send('Welcome, ' + (req.body.username) + '!' + '<a href='+'./'+'>Home</a>');
+            res.send('Welcome, ' + (req.sanitize(req.body.username)) + '!' + '<a href='+'./'+'> Home</a>');
 
 
           }
