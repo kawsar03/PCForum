@@ -24,6 +24,17 @@ console.log('Connected to database');
 });
 global.db = db;
 
+var session = require ('express-session');
+
+// Create a session
+app.use(session({
+    secret: 'somerandomstuff',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: 600000
+    }
+}));
 
 // Set up css
 app.use(express.static(__dirname + '/public'));

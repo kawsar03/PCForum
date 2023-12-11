@@ -1,4 +1,11 @@
 module.exports = function(app, shopData) {
+
+    const redirectLogin = (req, res, next) => {
+        if (!req.session.userId ) {
+          res.redirect('./login')
+        } else { next (); }
+    }
+
                                                                                                                                                       
     // Handle our routes
     app.get('/',function(req,res){
@@ -7,20 +14,20 @@ module.exports = function(app, shopData) {
     app.get('/about',function(req,res){
         res.render('about.ejs', shopData);
     });                                                                                                                                               
-    app.get('/search',function(req,res){
+    app.get('/search', redirectLogin, function(req,res){
         res.render("search.ejs", shopData);
     });                                                                                                                                               
-    app.get('/search-result', function (req, res) {
+    app.get('/search-result', redirectLogin, function (req, res) {
         // Searching in the database
         res.send("You searched for: " + req.query.keyword);
     });
         app.get('/register', function (req,res) {
         res.render('register.ejs', shopData);
     });                                                                                                                                               
-    app.get('/addsoftwareissue', function (req,res) {
+    app.get('/addsoftwareissue', redirectLogin, function (req,res) {
         res.render('addsoftwareissue.ejs', shopData);
     });
-    app.get('/addhardwareissue', function (req,res) {
+    app.get('/addhardwareissue', redirectLogin, function (req,res) {
         res.render('addhardwareissue.ejs', shopData);
     });
     app.get('/listusers', function(req, res) {
@@ -37,7 +44,7 @@ module.exports = function(app, shopData) {
             res.render("listusers.ejs", newData)
          });                                                                                                                                          
     });                                                                                                                                                
-    app.get('/listSI', function(req, res) {
+    app.get('/listSI', redirectLogin, function(req, res) {
         // Query database to get all the software issues
         let sqlquery = "SELECT * FROM software";
                                                                                                                                                       
@@ -51,7 +58,7 @@ module.exports = function(app, shopData) {
             res.render("listSI.ejs", newData)
          });                                                                                                                                          
     });
-    app.get('/listHI', function(req, res) {
+    app.get('/listHI', redirectLogin, function(req, res) {
         // Query database to get all the Hardware issues
         let sqlquery = "SELECT * FROM hardware";
                                                                                                                                                       
@@ -70,6 +77,14 @@ app.get('/login', function (req,res) {
 res.render('login.ejs', shopData);
 }); 
 
+app.get('/logout', redirectLogin, (req,res) => {
+    req.session.destroy(err => {
+    if (err) {
+      return res.redirect('./')
+    }
+    res.send('you are now logged out. <a href='+'./'+'>Home</a>');
+    })
+})
 
 app.get("/search-result", function (req, res) {
 //search database
@@ -84,7 +99,7 @@ res.send(result);
 });
 });
 
-app.get('/bargainbooks', function(req,res) {
+app.get('/bargainbooks', redirectLogin, function(req,res) {
 let sqlquery = "SELECT * FROM books WHERE price<20";
 db.query(sqlquery, (err, result) => {
 if (err) {
@@ -94,6 +109,34 @@ let newData = Object.assign({}, shopData, {availableBooks:result});
 console.log(newData)
 res.render("bargainbooks.ejs", newData)
 });
+});
+
+app.post('/softwareIssueadded', function (req, res) {
+    // saving data in database
+    let sqlquery = "INSERT INTO software (title,issue) VALUES (?,?)";
+    // execute sql query
+    let newrecord = [req.body.title, req.body.issue];
+    db.query(sqlquery, newrecord, (err, result) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        else
+            res.send(' This post was added to the forum, Title:   ' + req.body.title+ '  Issue:   ' + req.body.issue);
+    });
+});
+
+app.post('/hardwareIssueadded', function (req, res) {
+    // saving data in database
+    let sqlquery = "INSERT INTO hardware (title,issue) VALUES (?,?)";
+    // execute sql query
+    let newrecord = [req.body.title, req.body.issue];
+    db.query(sqlquery, newrecord, (err, result) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        else
+            res.send(' This post was added to the forum, Title:   ' + req.body.title+ '  Issue:   ' + req.body.issue);
+    });
 });
 
 app.post('/registered', function (req, res) {
@@ -153,8 +196,12 @@ app.post('/loggedin', function(req, res) {
             return console.error(err.message);
           }
           else if (result == true) {
+            // Save user session here, when login is successful
+            req.session.userId = req.body.username;
             // The passwords match, login successful
             res.send('Welcome, ' + (req.body.username) + '!' + '<a href='+'./'+'>Home</a>');
+
+
           }
           else {
             //  login failed
@@ -164,5 +211,7 @@ app.post('/loggedin', function(req, res) {
       }
     });
   });
+
+
     
 }
