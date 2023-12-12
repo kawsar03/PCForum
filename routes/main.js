@@ -144,6 +144,42 @@ app.post('/userremoved', redirectLogin, function (req, res) {
     });
 });
 
+const http = require('https');
+
+app.get('/GamesAPI', function (req, res) {
+    const requestOptions = {
+        method: 'GET',
+        hostname: 'free-to-play-games-database.p.rapidapi.com',
+        port: null,
+        path: '/api/filter?tag=3d.mmorpg.fantasy.pvp&platform=pc',
+        headers: {
+            'X-RapidAPI-Key': '5b3d4c744dmsh71f2384b8fd09f8p1763d4jsnd48eb0dfdb8a',
+            'X-RapidAPI-Host': 'free-to-play-games-database.p.rapidapi.com'
+        }
+    };
+
+    const gameHttpRequest = http.request(requestOptions, function (response) {
+        console.log('Response status code:', response.statusCode);
+
+        const chunks = [];
+
+        response.on('data', function (chunk) {
+            chunks.push(chunk);
+        });
+
+        response.on('end', function () {
+            const body = Buffer.concat(chunks);
+            const games = JSON.parse(body.toString());
+
+            // Pass the games data to the EJS template
+            res.render('GamesAPI', { shopName: 'PC Forum', games });
+        });
+    });
+
+    gameHttpRequest.end();
+});
+
+
 app.post('/softwareIssueadded', function (req, res) {
     // saving data in database
     let sqlquery = "INSERT INTO software (title,issue) VALUES (?,?)";

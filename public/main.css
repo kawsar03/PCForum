@@ -41,3 +41,17 @@ a:link {
     text-decoration: none;
     padding:5px;
   }
+
+  body {
+    font-size: 16px; /* Adjust as needed */
+}
+
+.card-deck {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card {
+    width: 18rem; /* Adjust card width as needed */
+}
+
