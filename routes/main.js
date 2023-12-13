@@ -19,30 +19,28 @@ module.exports = function(app, shopData) {
     app.get('/search', redirectLogin, function(req,res){
         res.render("search.ejs", shopData);
     });                                                                                                                                               
-    app.get('/search-result', check('search').isLength({ min: 1 }), function (req, res) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.redirect('./search');
-        } else {
-            const keyword = req.query.keyword;
+    app.get('/search-result', function (req, res) {
+        const keyword = `%${req.query.keyword}%`;
     
-            // Perform the search in both "software" and "hardware" tables
-            const query = `
-                SELECT * FROM software WHERE name LIKE ? 
-                UNION
-                SELECT * FROM hardware WHERE name LIKE ?`;
+        // Perform the search in both "software" and "hardware" tables
+        const query = `
+            SELECT 'Software' AS category, title, issue FROM software 
+            WHERE title LIKE ? OR issue LIKE ?
+            UNION
+            SELECT 'Hardware' AS category, title, issue FROM hardware 
+            WHERE title LIKE ? OR issue LIKE ?`;
     
-            connection.query(query, [`%${keyword}%`, `%${keyword}%`], (err, results) => {
-                if (err) {
-                    console.error('Error executing the search query:', err);
-                    res.status(500).send('Internal Server Error');
-                    return;
-                }
+        db.query(query, [keyword, keyword, keyword, keyword], (err, results) => {
+            if (err) {
+                console.error('Error executing the search query:', err);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
     
-                // Process the search results
-                res.render('result.ejs', { results });
-            });
-        }
+            let newData = Object.assign({}, shopData, { results: results });
+            // Process the search results
+            res.render('result.ejs', newData);
+        });
     });
     
         app.get('/register', function (req,res) {
@@ -109,19 +107,6 @@ app.get('/logout', redirectLogin, (req,res) => {
     res.send('you are now logged out. <a href='+'./'+'>Home</a>');
     })
 })
-
-app.get('/bargainbooks', redirectLogin, function(req,res) {
-let sqlquery = "SELECT * FROM books WHERE price<20";
-db.query(sqlquery, (err, result) => {
-if (err) {
-res.redirect('./');
-}
-let newData = Object.assign({}, shopData, {availableBooks:result});
-console.log(newData)
-res.render("bargainbooks.ejs", newData)
-});
-});
-
 app.get('/removeuser', redirectLogin, function (req,res) {
     res.render('removeuser.ejs', shopData);
 });

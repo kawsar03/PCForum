@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,11 @@
     <% if (results.length > 0) { %>
         <ul>
             <% results.forEach(result => { %>
-                <li><%= result.name %></li>
+                <li>
+                    <strong>Category:</strong> <%= result.category %><br>
+                    <strong>Title:</strong> <%= result.title %><br>
+                    <strong>Issue:</strong> <%= result.issue %>
+                </li>
             <% }); %>
         </ul>
     <% } else { %>

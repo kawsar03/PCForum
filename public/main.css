@@ -55,3 +55,16 @@ a:link {
     width: 18rem; /* Adjust card width as needed */
 }
 
+.about-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-container h1 {
+  color: #007bff;
+}
+
+.about-container p {
+  line-height: 1.6;
+}
+
