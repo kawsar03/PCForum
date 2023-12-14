@@ -10,3 +10,5 @@ GRANT ALL PRIVILEGES ON myPCForum.* TO 'appuser'@'localhost';
 CREATE TABLE userdetails (username VARCHAR(50), first_name VARCHAR(50) NOT NULL, last_name VARCHAR(50) NOT NULL, email VARCHAR(100) NOT NULL, hashedPassword VARCHAR(255) NOT NULL, PRIMARY KEY (username));
 SELECT * FROM userdetails WHERE username = 'duplicate-username';
 ALTER TABLE userdetails ADD UNIQUE KEY unique_username (username);
+SELECT * FROM userdetails;
+INSERT INTO userdetails (username,first_name,last_name,email,hashedPassword) VALUES('username','first name', 'last name', 'email@gmail.com', '$10$JogIxev0lZvS.U6WY49VJeFaMdl6LNQggrwvekaEUwlbjehisxk7K'); 

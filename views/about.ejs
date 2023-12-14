@@ -7,10 +7,33 @@
     <link rel="stylesheet" type="text/css" href="main.css">
 </head>
 <body>
+    <section class="header">
+
+        <div class="dropdown">
+            <span>Menu</span>
+            <div class="dropdown-content">
+                <a href="about">About <%=shopName%></a>
+                <a href="register">Register with us</a>
+                <a href="listSI">List of Current Software Issue</a>
+                <a href="listHI">List of Current Hardware Issue</a>
+                <a href="login">Log into your account!</a>
+                <a href="logout">Log Out!</a>
+                <a href="removeuser">Remove a User</a>
+                <a href="GamesAPI">Check out some of these free games for PC!</a>
+            </div>
+        </div>
+
+        <form class = "searchbar" action="/search-result" method="get">
+            <label for="keyword">Enter your search term:</label>
+            <input type="text" id="keyword" name="keyword" placeholder="Search..." required>
+            <button type="submit">Search</button>
+        </form>
+
     <div class="about-container">
         <h1>About PC Forum</h1>
         <p>Welcome to PC Forum! We are your one-stop solution for resolving a variety of software and hardware issues. Our platform is designed to assist you in troubleshooting and finding solutions to challenges related to your computer's operating system, software applications, and hardware components. Whether you're a tech enthusiast or a casual user, our user-friendly search feature allows you to explore and address a wide range of technical issues. Register with us to keep track of your inquiries, and delve into a community of experts and valuable resources. Join PC Forum and empower yourself to conquer technology hurdles with ease!</p>
     </div>
+    </section>
 </body>
 </html>
 
