@@ -197,44 +197,58 @@ app.post('/hardwareIssueadded', function (req, res) {
     });
 });
 
-app.post('/registered', [check('email').isEmail()], [check('password').isLength({ min: 8 }).withMessage('Please lengthen this text to 8 characters or more. (You are currently using  characters)')], function (req, res) {
-    const errors = validationResult(req);
+const bcrypt = require('bcrypt');
+
+app.post('/registered',
+    [
+        check('email').isEmail(),
+        check('password')
+            .isLength({ min: 8 }).withMessage('Please lengthen this text to 8 characters or more. (You are currently using characters)')
+            .matches(/\d/).withMessage('Password must contain at least one number')
+    ],
+    function (req, res) {
+        const errors = validationResult(req);
+
         if (!errors.isEmpty()) {
-            res.redirect('./register'); }
-        else { 
-    // Check if username already exists
-    let existingUserQuery = "SELECT * FROM userdetails WHERE username = ?";
-    db.query(existingUserQuery, [req.body.username], (err, result) => {
-        if (err) {
-            return res.status(500).send('Internal Server Error');
-        }
-
-        if (result.length > 0) {
-            return res.send('This username is already in use. Please choose something different');
-        }
-        const bcrypt = require('bcrypt');
-        const saltRounds = 10;
-        const plainPassword = req.body.password;
-
-        bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
-            // Store hashed password in database.
-            let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
-            // execute sql query
-            let newrecord = [req.sanitize(req.body.username), req.sanitize(req.body.first), req.sanitize(req.body.last), req.sanitize(req.body.email), hashedPassword];
-
-            db.query(sqlquery, newrecord, (err, result) => {
+            // Handle validation errors, you might want to send back an error response or redirect
+            return res.redirect('./register');
+        } else {
+            // Check if username already exists
+            let existingUserQuery = "SELECT * FROM userdetails WHERE username = ?";
+            db.query(existingUserQuery, [req.body.username], (err, result) => {
                 if (err) {
-                    return console.error(err.message);
-                } else {
-                    result = 'Hello ' + req.sanitize(req.body.first) + ' ' + req.sanitize(req.body.last) + ' you are now registered!  We will send an email to you at ' + req.sanitize(req.body.email);
-                    //result += 'Your password is: ' + req.body.password + ' and your hashed password is: ' + hashedPassword;
-                    res.send(result);
+                    return res.status(500).send('Internal Server Error');
                 }
+
+                if (result.length > 0) {
+                    return res.send('This username is already in use. Please choose something different');
+                }
+
+                const saltRounds = 10;
+                const plainPassword = req.body.password;
+
+                bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
+                    if (err) {
+                        return res.status(500).send('Internal Server Error');
+                    }
+
+                    // Store hashed password in the database
+                    let sqlquery = "INSERT INTO userdetails (username, first_name, last_name, email, hashedPassword) VALUES (?,?,?,?,?)";
+                    let newrecord = [req.sanitize(req.body.username), req.sanitize(req.body.first), req.sanitize(req.body.last), req.sanitize(req.body.email), hashedPassword];
+
+                    db.query(sqlquery, newrecord, (err, result) => {
+                        if (err) {
+                            return res.status(500).send('Internal Server Error');
+                        } else {
+                            result = 'Hello ' + req.sanitize(req.body.first) + ' ' + req.sanitize(req.body.last) + ' you are now registered!  We will send an email to you at ' + req.sanitize(req.body.email);
+                            res.send(result);
+                        }
+                    });
+                });
             });
-        });
-    });
-}
-});                                                                                                                                              
+        }
+    }
+);                                                                                                                                            
                                                                                                                                                       
 app.post('/loggedin', function(req, res) {
     // Compare the form data with the data stored in the database

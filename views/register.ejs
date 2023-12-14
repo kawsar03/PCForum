@@ -18,8 +18,8 @@
         <p>Last name: <input id="last" type="text" name="last" value="last name" /></p>
         <p>Email: <input id="email" type="email" name="email" value="email" /></p>
 	<p>Username: <input id="username" type="text" name="username" value="username" /></p>
-  <p>Password (Min. 8 Characters): <input id="password" type="password" name="password" value = password minlength="8" required /></p>
-        <input type="submit" value="Register" />
+  <p>Password (Min. 8 Characters and a Number): <input id="password" type="password" name="password" pattern="^(?=.*\d).{8,}$" title="Password must be at least 8 characters long and contain at least one number" required /></p>
+  <input type="submit" value="Register" />
       </form>
     </section>
   </body>
