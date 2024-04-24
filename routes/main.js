@@ -19,18 +19,32 @@ module.exports = function(app, shopData) {
     app.get('/search', redirectLogin, function(req,res){
         res.render("search.ejs", shopData);
     });                                                                                                                                               
+
     app.get('/search-result', function (req, res) {
         const keyword = `%${req.query.keyword}%`;
     
-        // Perform the search in both "software" and "hardware" tables
+        // Perform the search in the "stock" table
         const query = `
-            SELECT 'Software' AS category, title, issue FROM software 
-            WHERE title LIKE ? OR issue LIKE ?
-            UNION
-            SELECT 'Hardware' AS category, title, issue FROM hardware 
-            WHERE title LIKE ? OR issue LIKE ?`;
+        SELECT 'Stock' AS category, 
+               name AS name, 
+               upc AS upc, 
+               expiry AS expiry, 
+               Date Added AS dateAdded, 
+               Purchase Date AS datePurchased, 
+               Wholesale Price AS wholesalePrice, 
+               Retail Price AS retailPrice
+        FROM stock 
+        WHERE name LIKE ? 
+        OR upc LIKE ? 
+        OR CAST(quantity AS CHAR) LIKE ?
+        OR expiry LIKE ? 
+        OR dateAdded LIKE ? 
+        OR datePurchased LIKE ? 
+        OR CAST(wholesalePrice AS CHAR) LIKE ? 
+        OR CAST(retailPrice AS CHAR) LIKE ?`;
     
-        db.query(query, [keyword, keyword, keyword, keyword], (err, results) => {
+    
+        db.query(query, [keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword], (err, results) => {
             if (err) {
                 console.error('Error executing the search query:', err);
                 res.status(500).send('Internal Server Error');
@@ -43,14 +57,12 @@ module.exports = function(app, shopData) {
         });
     });
     
+    
         app.get('/register', function (req,res) {
         res.render('register.ejs', shopData);
     });                                                                                                                                               
-    app.get('/addsoftwareissue', redirectLogin, function (req,res) {
-        res.render('addsoftwareissue.ejs', shopData);
-    });
-    app.get('/addhardwareissue', redirectLogin, function (req,res) {
-        res.render('addhardwareissue.ejs', shopData);
+    app.get('/addstockitem', redirectLogin, function (req,res) {
+        res.render('addstockitem.ejs', shopData);
     });
     app.get('/listusers', function(req, res) {
         // Query database to get all the users
@@ -66,34 +78,22 @@ module.exports = function(app, shopData) {
             res.render("listusers.ejs", newData)
          });                                                                                                                                          
     });                                                                                                                                                
-    app.get('/listSI', redirectLogin, function(req, res) {
-        // Query database to get all the software issues
-        let sqlquery = "SELECT * FROM software";
-                                                                                                                                                      
+
+    app.get('/listStock', redirectLogin, function(req, res) {
+        // Query database to get all the stock items
+        let sqlquery = "SELECT * FROM stock";
+    
         // Execute sql query
-        db.query(sqlquery, (err, result) => {                                                                                                         
+        db.query(sqlquery, (err, result) => {
             if (err) {
                 res.redirect('./');
             }
-            let newData = Object.assign({}, shopData, {PostedSI:result});
-            console.log(newData)                                                                                                                      
-            res.render("listSI.ejs", newData)
-         });                                                                                                                                          
+            let newData = Object.assign({}, shopData, { stockItems: result });
+            console.log(newData);
+            res.render("listStock.ejs", newData);
+        });
     });
-    app.get('/listHI', redirectLogin, function(req, res) {
-        // Query database to get all the Hardware issues
-        let sqlquery = "SELECT * FROM hardware";
-                                                                                                                                                      
-        // Execute sql query
-        db.query(sqlquery, (err, result) => {                                                                                                         
-            if (err) {
-                res.redirect('./');
-            }
-            let newData = Object.assign({}, shopData, {PostedHI:result});
-            console.log(newData)                                                                                                                      
-            res.render("listHI.ejs", newData)
-         });                                                                                                                                          
-    });
+    
 
 app.get('/login', function (req,res) {
 res.render('login.ejs', shopData);
@@ -169,33 +169,27 @@ app.get('/GamesAPI', function (req, res) {
 });
 
 
-app.post('/softwareIssueadded', function (req, res) {
-    // saving data in database
-    let sqlquery = "INSERT INTO software (title,issue) VALUES (?,?)";
-    // execute sql query
-    let newrecord = [req.sanitize(req.body.title), req.sanitize(req.body.issue)];
-    db.query(sqlquery, newrecord, (err, result) => {
+
+app.post('/stockItemAdded', function (req, res) {
+    // Extract data from the request body
+    const { name, upc, quantity, expiry, dateAdded, datePurchased, wholesalePrice, retailPrice } = req.body;
+
+    // SQL query to insert data into the stock table
+    const sqlQuery = "INSERT INTO stock (name, upc, quantity, expiry, dateAdded, datePurchased, wholesalePrice, retailPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    // Values to be inserted into the stock table
+    const newRecord = [name, upc, quantity, expiry, dateAdded, datePurchased, wholesalePrice, retailPrice];
+
+    // Execute the SQL query
+    db.query(sqlQuery, newRecord, (err, result) => {
         if (err) {
-            return console.error(err.message);
+            console.error('Error inserting data into the stock table:', err);
+            return res.status(500).send('Internal Server Error');
         }
-        else
-            res.send(' This post was added to the forum, Title:   ' + req.sanitize(req.body.title)+ '  Issue:   ' + req.sanitize(req.body.issue));
+        res.send('Stock item added successfully!');
     });
 });
 
-app.post('/hardwareIssueadded', function (req, res) {
-    // saving data in database
-    let sqlquery = "INSERT INTO hardware (title,issue) VALUES (?,?)";
-    // execute sql query
-    let newrecord = [req.sanitize(req.body.title), req.sanitize(req.body.issue)];
-    db.query(sqlquery, newrecord, (err, result) => {
-        if (err) {
-            return console.error(err.message);
-        }
-        else
-            res.send(' This post was added to the forum, Title:   ' + req.body.title+ '  Issue:   ' + req.body.issue);
-    });
-});
 
 app.post('/registered', [check('email').isEmail()], [check('password').isLength({ min: 8 }).withMessage('Please lengthen this text to 8 characters or more. (You are currently using  characters)')], function (req, res) {
     const errors = validationResult(req);
